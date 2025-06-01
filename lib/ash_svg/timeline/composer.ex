@@ -7,7 +7,6 @@ defmodule AshSvg.Timeline.Composer do
   """
   
   alias AshSvg.{Timeline, Keyframe}
-  alias AshSvg.Timeline.Validator
   
   @doc """
   Merges two timelines, combining their keyframes.
@@ -17,7 +16,7 @@ defmodule AshSvg.Timeline.Composer do
   """
   @spec merge(Timeline.t(), Timeline.t(), keyword()) :: {:ok, Timeline.t()} | {:error, term()}
   def merge(timeline1, timeline2, opts \\ []) do
-    with :ok <- Validator.validate_composition(timeline1, timeline2, :merge) do
+    with :ok <- validate_composition(timeline1, timeline2, :merge) do
       duration = max_value(timeline1.duration, timeline2.duration)
       
       # Convert absolute times if needed
@@ -47,42 +46,31 @@ defmodule AshSvg.Timeline.Composer do
   def sequence([], _opts), do: {:error, :empty_timeline_list}
   def sequence([timeline], _opts), do: {:ok, timeline}
   def sequence(timelines, opts) do
-    # Validate all timelines
-    validation_results = Enum.map(timelines, fn tl -> 
-      Validator.validate_timeline(tl)
-    end)
+    # Calculate total duration
+    total_duration = timelines
+                    |> Enum.map(& &1.duration)
+                    |> Enum.sum()
     
-    case Enum.find(validation_results, &(&1 != :ok)) do
-      nil ->
-        # Calculate total duration
-        total_duration = timelines
-                        |> Enum.map(& &1.duration)
-                        |> Enum.sum()
-        
-        # Build sequenced keyframes
-        {sequenced_keyframes, _} = timelines
-                                   |> Enum.reduce({[], 0}, fn timeline, {keyframes_acc, time_offset} ->
-                                     # Adjust keyframe times to account for offset
-                                     adjusted_keyframes = timeline.keyframes
-                                                         |> Enum.map(fn kf ->
-                                                           time_in_sequence = (kf.time * timeline.duration + time_offset) / total_duration
-                                                           %{kf | time: time_in_sequence}
-                                                         end)
-                                     
-                                     {keyframes_acc ++ adjusted_keyframes, time_offset + timeline.duration}
-                                   end)
-        
-        Timeline.new(
-          duration: total_duration,
-          keyframes: sequenced_keyframes,
-          easing: opts[:easing] || :linear,
-          loop_mode: opts[:loop_mode] || :none,
-          loop_count: opts[:loop_count] || 1
-        )
-      
-      error ->
-        error
-    end
+    # Build sequenced keyframes
+    {sequenced_keyframes, _} = timelines
+                               |> Enum.reduce({[], 0}, fn timeline, {keyframes_acc, time_offset} ->
+                                 # Adjust keyframe times to account for offset
+                                 adjusted_keyframes = timeline.keyframes
+                                                     |> Enum.map(fn kf ->
+                                                       time_in_sequence = (kf.time * timeline.duration + time_offset) / total_duration
+                                                       %{kf | time: time_in_sequence}
+                                                     end)
+                                 
+                                 {keyframes_acc ++ adjusted_keyframes, time_offset + timeline.duration}
+                               end)
+    
+    Timeline.new(
+      duration: total_duration,
+      keyframes: sequenced_keyframes,
+      easing: opts[:easing] || :linear,
+      loop_mode: opts[:loop_mode] || :none,
+      loop_count: opts[:loop_count] || 1
+    )
   end
   
   @doc """
@@ -221,4 +209,15 @@ defmodule AshSvg.Timeline.Composer do
   
   defp max_value(a, b) when a > b, do: a
   defp max_value(_, b), do: b
+  
+  defp validate_composition(timeline1, timeline2, mode) when mode in [:sequence, :parallel, :merge] do
+    cond do
+      timeline1.duration == 0 -> {:error, :invalid_timeline1_duration}
+      timeline2.duration == 0 -> {:error, :invalid_timeline2_duration}
+      true -> :ok
+    end
+  end
+  defp validate_composition(_, _, mode) do
+    {:error, {:invalid_composition_mode, mode}}
+  end
 end

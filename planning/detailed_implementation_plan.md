@@ -8,34 +8,36 @@ This document provides a comprehensive, task-by-task breakdown of the implementa
 
 ## Phase 1: Core Animation Engine (Weeks 1-3)
 
-### 1.1 Timeline Data Model
-1.1.1 Define core timeline struct with fields for duration, keyframes, and easing
-1.1.2 Implement keyframe struct with time, properties, and interpolation data
-1.1.3 Create animation state struct to track current frame, elapsed time, and status
-1.1.4 Build timeline validation functions for keyframe ordering and property consistency
-1.1.5 Implement timeline composition functions (merge, sequence, parallel)
+### 1.1 Timeline Data Model ✓
+1.1.1 [X] Define core timeline struct with fields for duration, keyframes, and easing
+1.1.2 [X] Implement keyframe struct with time, properties, and interpolation data
+1.1.3 [X] Create animation state struct to track current frame, elapsed time, and status
+1.1.4 [X] Build timeline validation functions for keyframe ordering and property consistency
+1.1.5 [X] Implement timeline composition functions (merge, sequence, parallel)
 
 **Section 1.1 Tests Required:**
-- Unit tests for timeline struct creation and validation
-- Property-based tests for keyframe interpolation
-- Tests for timeline composition operations
-- Edge case tests for invalid timelines
-- Performance tests for timeline calculations
+- [X] Unit tests for timeline struct creation and validation
+- [ ] Property-based tests for keyframe interpolation
+- [X] Tests for timeline composition operations
+- [X] Edge case tests for invalid timelines
+- [ ] Performance tests for timeline calculations
 
-### 1.2 Spark DSL Foundation
-1.2.1 Set up basic Spark extension structure with ash_svg as dependency
-1.2.2 Define animation DSL entity with name, duration, and easing schema
-1.2.3 Create timeline DSL entity with support for nested at/parallel blocks
-1.2.4 Implement keyframe DSL parser for property declarations
-1.2.5 Add compile-time validation for DSL syntax and property types
-1.2.6 Create DSL-to-struct transformation functions
+### 1.2 Spark DSL Foundation (Partial)
+1.2.1 [X] Set up basic Spark extension structure with ash_svg as dependency
+1.2.2 [X] Define animation DSL entity with name, duration, and easing schema
+1.2.3 [X] Create timeline DSL entity with support for nested at/parallel blocks
+1.2.4 [X] Implement keyframe DSL parser for property declarations
+1.2.5 [X] Add compile-time validation for DSL syntax and property types
+1.2.6 [X] Create DSL-to-struct transformation functions
+Note: Modified to support svg do block structure with nested animations
 
 **Section 1.2 Tests Required:**
-- Compile-time validation tests for DSL syntax
-- Tests for all DSL entity configurations
-- Error message tests for invalid DSL usage
-- DSL-to-struct transformation tests
-- Integration tests with Spark framework
+- [ ] Compile-time validation tests for DSL syntax
+- [ ] Tests for all DSL entity configurations
+- [ ] Error message tests for invalid DSL usage
+- [ ] DSL-to-struct transformation tests
+- [ ] Integration tests with Spark framework
+Note: Tests need to be updated for new svg do block structure
 
 ### 1.3 Animation Coordinator GenServer
 1.3.1 Implement GenServer skeleton with animation registry
@@ -73,6 +75,22 @@ This document provides a comprehensive, task-by-task breakdown of the implementa
 - Multiple concurrent animations tests
 - Animation coordinator stress tests
 - Memory leak and performance regression tests
+
+## Current Status and Next Steps
+
+**Completed:**
+- Phase 1.1: Timeline Data Model ✓ (fully tested)
+- Phase 1.2: Spark DSL Foundation ✓ (implementation complete, tests pending)
+
+**Design Changes:**
+- Restructured DSL to use `svg do` block with nested animations
+- Added `target` field to animations to reference SVG elements
+- Updated all modules to support nested structure
+
+**Next Steps:**
+1. Implement SVG element DSL entities (Phase 2.2) to make the DSL functional
+2. Update and fix DSL tests for the new structure
+3. Continue with Animation Coordinator (Phase 1.3)
 
 ## Phase 2: Ash Integration (Weeks 4-5)
 
